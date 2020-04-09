@@ -8,18 +8,18 @@
       ____\//\\\\\\//\\\\\_____\/\\\_____________\/\\\______________\///\\\___________\///\\\__/\\\____\/\\\_____________\/\\\_\/\\\_____________
        _____\//\\\__\//\\\______\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\____\////\\\\\\\\\____\///\\\\\/_____\/\\\_____________\/\\\_\/\\\\\\\\\\\\\\\_
         ______\///____\///_______\///////////////__\///////////////________\/////////_______\/////_______\///______________\///__\///////////////__
-__/\\\________/\\\___________________________________________________/\\\\\\\_______________/\\\_
- _\/\\\_______\/\\\_________________________________________________/\\\/////\\\_________/\\\\\\\_
-  _\//\\\______/\\\_________________________________________________/\\\____\//\\\_______\/////\\\_
-   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\___________________\/\\\_____\/\\\___________\/\\\_
-    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\__________________\/\\\_____\/\\\___________\/\\\_
-     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///___/\\\\___________\/\\\_____\/\\\___________\/\\\_
-      _____\//\\\\\______\//\\///////___\/\\\_________\///\\___________\//\\\____/\\\____________\/\\\_
-       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\/_____________\///\\\\\\\/____/\\\_____\/\\\_
-        _______\///__________\//////////__\///__________\//_________________\///////_____\///______\///_
+__/\\\________/\\\__________________________________________________/\\\\\\\_____________/\\\\\\\\\_____
+ _\/\\\_______\/\\\________________________________________________/\\\/////\\\_________/\\\///////\\\___
+  _\//\\\______/\\\________________________________________________/\\\____\//\\\_______\///______\//\\\__
+   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\__________________\/\\\_____\/\\\_________________/\\\/___
+    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\_________________\/\\\_____\/\\\______________/\\\//_____
+     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///__________________\/\\\_____\/\\\___________/\\\//________
+      _____\//\\\\\______\//\\///////___\/\\\_________________________\//\\\____/\\\__________/\\\/___________
+       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\\____________\///\\\\\\\/____/\\\__/\\\\\\\\\\\\\\\_
+        _______\///__________\//////////__\///__________\///_______________\///////_____\///__\///////////////__
 
 NAME: Veronica(?)
-VER 0.0 - Start spot
+VER 0.2 - 3d convolve
 START DATE: 4-1-2020 (lol wont be doing much tho)
 Credit to: MNIST data
 
@@ -34,8 +34,8 @@ Credit to: MNIST data
 
 Layer 0: Input pre-processing
 Layer 1: Convolutional -> pooling
-Layer 2: ???
-Layer 3: N layer Perceptitron
+Layer 2: N times ^
+Layer 3: M layer Perceptitron
 Layer 4: Output processing
 
 Training:
@@ -89,12 +89,18 @@ start file
 
 patch 0.1 - 4-7-2020:
 added zero padding
+added matrix class
 added convolve function
+
+patch 0.2 - 4-8-2020:
+added 3d matrix class
+added 3d convolve function
+started ANN
 
 */
 #include<vector>
 #include<iostream>
-#include<cstdlib>
+#include<ctime>
 using namespace std;
 
 
@@ -131,14 +137,15 @@ const char ACTIVATION_FUNC = 'r';   // activation function
 
 // start code
 
-
+//-----------------------------------------------------------------------------------------------control panel
 
 class Matrix
 {
 public:
   Matrix(const short height, const short width);
-  void set_pixel(const short x, const short y, const short val);
-  short get_pixel(const short x, const short y)const;
+  Matrix();
+  void set_pixel(const short y, const short x, const short val);
+  short get_pixel(const short y, const short x)const;
   short get_height() const;
   short get_width() const;
   void set_height(const short new_height);
@@ -149,8 +156,12 @@ private:
   short m_height;
   short m_width;
 
-
 };
+
+Matrix::Matrix()
+{
+  Matrix(1, 1);
+}
 
 Matrix::Matrix(const short height, const short width)
 {
@@ -191,15 +202,123 @@ short Matrix::get_width() const
 void Matrix::set_height(const short new_height)
 {
   m_height = new_height;
+  img.resize(m_height);
   return;
 }
 void Matrix::set_width(const short new_width)
 {
   m_width = new_width;
+  for (short i = 0; i < m_height; i++)
+  {
+    img[i].resize(m_width);
+
+  }
   return;
 }
 
+//-----------------------------------------------------------------------------------------------matrix3d
 
+class Matrix3d
+{
+public:
+  Matrix3d(const short depth, const short height, const short width, const vector<vector<vector<short>>> data);
+  Matrix3d();
+  void set_pixel(const short z, const short y, const short x, const short val);
+  short get_pixel(const short z, const short y, const short x)const;
+  short get_height() const;
+  short get_width() const;
+  short get_depth() const;
+  void set_height(const short new_height);
+  void set_width(const short new_width);
+  void set_depth(const short new_width);
+
+private:
+  vector<vector<vector<short>>> img;
+  short m_height;
+  short m_width;
+  short m_depth;
+};
+
+Matrix3d::Matrix3d()
+{
+  m_height = 1;
+  m_width = 1;
+  m_depth = 1;
+}
+
+Matrix3d::Matrix3d(const short depth, const short height, const short width, const vector<vector<vector<short>>> data)
+{
+  img.resize(depth);
+  for (short i = 0; i < depth; i++)
+  {
+    img[i].resize(height);
+    for (short j = 0; j < height; j++)
+    {
+      img[i][j].resize(width);
+      for (short k = 0; k < width; k++)
+      {
+        img[i][j][k] = data[i][j][k];
+      }
+    }
+  }
+
+  m_height = height;
+  m_width = width;
+  m_depth = depth;
+}
+
+//width, heigh
+void Matrix3d::set_pixel(const short z, const short y, const short x, const short val)
+{
+  img[z][y][x] = val;
+  return;
+}
+short Matrix3d::get_pixel(const short z, const short y, const short x)const
+{
+  return img[z][y][x];
+}
+
+short Matrix3d::get_height() const
+{
+  return m_height;
+}
+
+short Matrix3d::get_width() const
+{
+  return m_width;
+}
+short Matrix3d::get_depth() const
+{
+  return m_depth;
+}
+void Matrix3d::set_height(const short new_height)
+{
+  m_height = new_height;
+  for (short i = 0; i < m_depth; i++)
+  {
+    img[i].resize(new_height);
+  }
+  return;
+}
+void Matrix3d::set_width(const short new_width)
+{
+  m_width = new_width;
+  for (short i = 0; i < m_depth; i++)
+  {
+    for (short i = 0; i < m_height; i++)
+    {
+      img[i].resize(new_width);
+    }
+  }
+  return;
+}
+void Matrix3d::set_depth(const short new_depth)
+{
+  m_depth = new_depth;
+  img.resize(new_depth);
+  return;
+}
+//-----------------------------------------------------------------------------------------------siz
 struct siz
 {
   short m_height;
@@ -212,78 +331,40 @@ siz new_size(const Matrix picture, const Matrix filter);
 
 Matrix convolve(const Matrix picture, const Matrix filter);
 
+Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d filter);
+
+siz new_size3d(const Matrix picture, const Matrix3d filter);
+
+//-----------------------------------------------------------------------------------------------main
 int main()
 {
-  Matrix newx(IMG_SIZE_H_POST, IMG_SIZE_W_POST);
-  Matrix filter(5, 6);
+  srand(time(0));
 
-  cout << "filter" << endl;
-  for (int i = 0; i < 5; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      filter.set_pixel(i, j, rand() % 10);
-      cout << filter.get_pixel(i, j) << " ";
 
-    }
-    cout << endl;
-  }
-  cout << endl << "img" << endl;
+  //make layer 0 input <- img 1
 
-  for (int i = 0; i < IMG_SIZE_H_PRE; i++)
-  {
-    for (int j = 0; j < IMG_SIZE_W_PRE; j++)
-    {
-      newx.set_pixel((ZERO_PAD) ? i + 1 : i, (ZERO_PAD) ? j + 1 : j, rand() % 10);
+  //generate filters
 
-    }
-  }
+  //plug in filters
 
-  for (int i = 0; i < IMG_SIZE_H_POST; i++)
-  {
-    for (int j = 0; j < IMG_SIZE_W_POST; j++)
-    {
-      cout << newx.get_pixel(i, j) << " ";
-    }
-    cout << endl;
-  }
+  //2d convolve the filters
 
-  cout << endl;
+  //place results into array
 
-  if (ZERO_PAD)
-  {
-    newx = apply_zero_pad(newx);
-  }
+  //3d convolve
 
-  for (int i = 0; i < IMG_SIZE_H_POST; i++)
-  {
-    for (int j = 0; j < IMG_SIZE_W_POST; j++)
-    {
-      cout << newx.get_pixel(i, j) << " ";
-    }
-    cout << endl;
-  }
+  // N times^
 
-  cout << endl << "oput" << endl;
-  //zero pad applied
+  //last 3d convolve into data img
 
-  Matrix output(new_size(newx, filter).m_height, new_size(newx, filter).m_width);
+  //ANN
 
-  output = convolve(newx, filter);
 
-  for (int i = 0; i < new_size(newx, filter).m_height; i++)
-  {
-    for (int j = 0; j < new_size(newx, filter).m_width; j++)
-    {
-      cout << output.get_pixel(i, j) << " ";
-    }
-    cout << endl;
-  }
 
-  return 1; //haha we get to return 1 now >:)
+
 }
 
-
+//-----------------------------------------------------------------------------------------------zero pad
 Matrix apply_zero_pad(const Matrix picture)
 {
   Matrix output = picture;
@@ -306,7 +387,7 @@ Matrix apply_zero_pad(const Matrix picture)
 
 }
 
-
+//-----------------------------------------------------------------------------------------------new siz
 siz new_size(const Matrix picture, const Matrix filter)
 {
   siz si;
@@ -315,6 +396,16 @@ siz new_size(const Matrix picture, const Matrix filter)
   return si;
 }
 
+siz new_size3d(const Matrix picture, const Matrix3d filter)
+{
+  Matrix temp;
+  temp.set_height(filter.get_height());
+  temp.set_width(filter.get_width());
+  return new_size(picture, temp);
+}
+
+
+//-----------------------------------------------------------------------------------------------2dconv
 //apply zero pad b4
 Matrix convolve(const Matrix picture, const Matrix filter)
 {
@@ -345,6 +436,46 @@ Matrix convolve(const Matrix picture, const Matrix filter)
     }
   }
 
+
+
+  return output;
+}
+
+//-----------------------------------------------------------------------------------------------3d conv
+
+//apply zero pad b4
+//all pictires same size ;)
+Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d filter)
+{
+  short output_height = (pictures[0].get_height() - filter.get_height()) + 1;
+  short output_width = (pictures[0].get_width() - filter.get_width()) + 1;
+
+  short val;
+
+  Matrix output(output_height, output_width);
+
+  for (short i = 0; i < output_height; i++)
+  {
+    for (short j = 0; j < output_width; j++)
+    {
+      val = 0;
+
+      for (short z = 0; z < filter.get_depth(); z++)
+      {
+        for (short y = 0; y < filter.get_height(); y++)
+        {
+          for (short x = 0; x < filter.get_width(); x++)
+          {
+            val += pictures[z].get_pixel(i + y, j + x) * filter.get_pixel(z, y, x);
+          }
+        }
+      }
+
+
+      output.set_pixel(i, j, val);
+
+    }
+  }
 
 
   return output;
