@@ -1,6 +1,7 @@
 # Digit-Recognition-CNN
 
 NAME: Veronica(?)
+
 VER 0.1 - Convole works
 START DATE: 4-1-2020 (lol wont be doing much tho)
 Credit to: MNIST data
