@@ -3,6 +3,7 @@
 
 
 #include "panel.h"    //constants
+#include "source.h"
 #include "matrix2d.h"
 
 Matrix::Matrix()
@@ -59,6 +60,87 @@ void Matrix::set_width(const short new_width)
   {
     img[i].resize(m_width);
 
+  }
+  return;
+}
+
+void Matrix::randomize() 
+{
+  for (short i = 0; i < m_height; i++)
+  {
+    for (short j = 0; j < m_width; j++)
+    {
+      img[i][j] = rand()%((MAX_PIXEL-MIN_PIXEL)*100)/100.0;
+    }
+  }
+  return;
+}
+
+
+
+
+
+
+void Matrix::apply_zero_pad()
+{
+
+  if (ZERO_PAD)
+  {
+    Matrix output(m_height + 2, m_width + 2);
+
+
+    for (short i = 1; i < m_height+1; i++)
+    {
+      for (short j = 1; j < m_width + 1; j++)
+      {
+        output.set_pixel(i, j, img[i-1][j-1]);
+      }
+    }
+    
+    for (short i = 1; i < m_height + 1; i++)
+    {
+      output.set_pixel(i, 0, 0);
+      output.set_pixel(i, m_width + 1, 0);
+
+    }
+
+    for (short i = 1; i < m_width + 1; i++)
+    {
+      output.set_pixel(0, i, 0);
+      output.set_pixel(m_height + 1, i, 0);
+
+    }
+    
+    set_height(m_height + 2);
+    set_width(m_width + 2);
+
+    for (short i = 0; i < m_height ; i++)
+    {
+      for (short j = 0; j < m_width ; j++)
+      {
+        img[i][j] = output.get_pixel(i, j);
+      }
+    }
+    
+
+
+  }
+
+  return;
+
+}
+
+
+
+void Matrix::apply_active() 
+{
+
+  for (short i = 0; i < m_height; i++)
+  {
+    for (short j = 0; j < m_width; j++)
+    {
+      img[i][j] = activate(img[i][j]);
+    }
   }
   return;
 }

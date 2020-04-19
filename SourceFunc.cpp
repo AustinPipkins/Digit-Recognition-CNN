@@ -6,29 +6,6 @@
 #include "matrix3d.h"
 
 
-Matrix apply_zero_pad(const Matrix picture)
-{
-  Matrix output = picture;
-
-
-  for (short i = 0; i < IMG_SIZE_W_POST; i++)
-  {
-    output.set_pixel(0, i, 0);
-    output.set_pixel(IMG_SIZE_H_POST - 1, i, 0);
-  }
-
-  for (short i = 0; i < IMG_SIZE_H_POST; i++)
-  {
-    output.set_pixel(i, 0, 0);
-    output.set_pixel(i, IMG_SIZE_W_POST - 1, 0);
-  }
-
-
-  return output;
-
-}
-
-
 
 siz new_size(const Matrix picture, const Matrix filter)
 {
@@ -136,11 +113,12 @@ float random_number(const short lower, const short upper, const short pre)
 }
 
 
-template <typename T>
-T activate(T old_num)
-{
-  T num = old_num;
 
+float activate(float old_num)
+{
+  float num = old_num;
+
+  /*
   if (ACTIVATION_FUNC == 'r')
   {
     if (old_num < 0)
@@ -153,6 +131,7 @@ T activate(T old_num)
   {
     num = 1.0 / (1.0 + exp(-old_num));
   }
+  */
 
   return num;
 }
@@ -288,6 +267,43 @@ ostream& operator << (ostream& out, Matrix m)
     }
     out << endl;
   }
+
+  return out;
+}
+
+ostream& operator << (ostream& out, Matrix3d m)
+{
+  cout << fixed;
+
+  for (short i = 0; i < m.get_width()/2; i++)
+  {
+    out << "       ";
+  }
+
+  for (short j = 0; j < m.get_depth(); j++)
+  {
+    out << "Depth " << j;
+    for (short i = 0; i < m.get_width(); i++)
+    {
+      out << "\t" << "    ";
+    }
+  }
+
+  out << endl;
+
+  for (short k = 0; k < m.get_height(); k++)
+  {
+    for (short j = 0; j < m.get_depth(); j++)
+    {
+      for (short i = 0; i < m.get_width(); i++)
+      {
+        out << setprecision(2) << m.get_pixel(j, k, i) << "\t";
+      }
+      out << "\t";
+    }
+    out << endl;
+  }
+
 
   return out;
 }

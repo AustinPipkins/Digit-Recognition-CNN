@@ -20,7 +20,6 @@ struct weight_set
 };
 
 
-Matrix apply_zero_pad(const Matrix picture);
 
 siz new_size(const Matrix picture, const Matrix filter);
 
@@ -32,12 +31,12 @@ siz new_size3d(const Matrix picture, const Matrix3d filter);
 
 float random_number(const short lower, const short upper, const short pre);
 
-template <typename T>
-T activate(T old_num);
+float activate(float old_num);
 
 Matrix pool(Matrix input, const char kind);
 
 ostream& operator << (ostream& out, Matrix m);
+ostream& operator << (ostream& out, Matrix3d m);
 
 
 #endif

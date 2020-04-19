@@ -8,18 +8,18 @@
       ____\//\\\\\\//\\\\\_____\/\\\_____________\/\\\______________\///\\\___________\///\\\__/\\\____\/\\\_____________\/\\\_\/\\\_____________
        _____\//\\\__\//\\\______\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\____\////\\\\\\\\\____\///\\\\\/_____\/\\\_____________\/\\\_\/\\\\\\\\\\\\\\\_
         ______\///____\///_______\///////////////__\///////////////________\/////////_______\/////_______\///______________\///__\///////////////__
-__/\\\________/\\\__________________________________________________/\\\\\\\_____________________/\\\____
- _\/\\\_______\/\\\________________________________________________/\\\/////\\\_________________/\\\\\____
-  _\//\\\______/\\\________________________________________________/\\\____\//\\\______________/\\\/\\\____
-   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\__________________\/\\\_____\/\\\____________/\\\/\/\\\____
-    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\_________________\/\\\_____\/\\\__________/\\\/__\/\\\____
-     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///__________________\/\\\_____\/\\\________/\\\\\\\\\\\\\\\\_
-      _____\//\\\\\______\//\\///////___\/\\\_________________________\//\\\____/\\\________\///////////\\\//__
-       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\\____________\///\\\\\\\/____/\\\___________\/\\\____
-        _______\///__________\//////////__\///__________\///_______________\///////_____\///____________\///_____
+__/\\\________/\\\__________________________________________________/\\\\\\\____________/\\\\\\\\\\\\\\\_
+ _\/\\\_______\/\\\________________________________________________/\\\/////\\\_________\/\\\///////////__
+  _\//\\\______/\\\________________________________________________/\\\____\//\\\________\/\\\_____________
+   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\__________________\/\\\_____\/\\\________\/\\\\\\\\\\\\_____
+    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\_________________\/\\\_____\/\\\________\////////////\\\___
+     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///__________________\/\\\_____\/\\\___________________\//\\\__
+      _____\//\\\\\______\//\\///////___\/\\\_________________________\//\\\____/\\\_________/\\\________\/\\\__
+       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\\____________\///\\\\\\\/____/\\\_\//\\\\\\\\\\\\\/___
+        _______\///__________\//////////__\///__________\///_______________\///////_____\///___\/////////////_____
 
 NAME: Veronica(?)
-VER 0.4 - pre-compiler
+VER 0.5 - connecting brain
 START DATE: 4-1-2020 (lol wont be doing much tho)
 Credit to: MNIST data
 
@@ -108,6 +108,15 @@ added activation functions
 added pooling
 started op_list compiler
 
+patch 0.5 - 4-18-2020:
+added << overload for 3d filters
+added randomize method
+fixed zero pad apply
+added active all method
+added filter list initializer
+added layer list initializer
+conected layer 1 - unchecked
+
 */
 
 
@@ -119,47 +128,168 @@ started op_list compiler
 
 
 
+
+// img -> make many reuslts (for each): zero pad? conv? active:
+
+
+
 int main()
 {
-  /*
-  OPERATIONS LIST
-convolve 2d/3d : "c"
-    followed by: number of resulting images
 
-zeropad        : "z"
+  srand(time(0));
+  //const short INITIAL_H = 28;
+  //const short INITIAL_W = 28;
+  //const short NUM_OUT = 10;
 
-pooling        : "p"
-    followed by: type of pooling:
-                  max: 'm'
-                  avg: 'a'
 
-Neuron layer   : "n"
-    followed by: number of neurons in layer
-
-NOTE: MUST END IN "n10"
   
-  
-
-
-
-  //make func: op_check
-
-  // i = single image
-  // I = multiple images
-  // n = single neuron
-  // N = many neurons
-
-  char layer_type = 'i';
-  // checks that opload is valid
-  for (short i = 0; i < NUM_OP; i++)
+  //initilaize a filter set
+  vector<vector<Matrix3d>> filter_list;
+  filter_list.resize(NUM_N_LAYERS + 1);
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
   {
-
-    
+    if (i == 0)
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_1);
+    }
+    else
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_N);
+    }
   }
+
+
+  for (short layer = 0; layer < NUM_N_LAYERS + 1; layer++)
+  {
+    if(layer == 0)
+    {
+      for (short filter = 0; filter < NUM_IMG_LAYER_1; filter++)
+      {
+        //2d in 3dform
+        Matrix3d temp_filter(1, FILTER_SIZE_1, FILTER_SIZE_1);
+        temp_filter.randomize();
+        //cout << temp_filter;
+        filter_list[0][filter] = temp_filter;
+
+      }
+    }
+    else 
+    {
+      for (short filter = 0; filter < NUM_IMG_LAYER_N; filter++)
+      {
+        Matrix3d temp_filter(((layer==1)? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), FILTER_SIZE_N, FILTER_SIZE_N);
+        temp_filter.randomize();
+        filter_list[layer][filter] = temp_filter;
+      }
+    }
+  }
+  
+
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    cout << "LAYER ===== " << i + 1 << endl;
+    if (i == 0)
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
+      {
+        cout << "filter" << j+1 << endl << filter_list[0][j] << endl << endl;
+      }
+    }
+    else
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
+      {
+        cout << "filter" << j + 1 << endl << filter_list[i][j] << endl << endl;
+      }
+    }
+  }
+  
+  return 0;
+
+  //filterlist made
+  
+
+  
+
+  //initilaize a layer list
+  vector<vector<Matrix>> layer_list;
+  filter_list.resize(NUM_N_LAYERS + 1);
+
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    if (i == 0)
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_1);
+    }
+    else
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_N);
+    }
+  }
+
+  
+
+
+  
+
+
+
+  Matrix input_img(INITIAL_H, INITIAL_W);
+
+  //load the img here!
+  //for now: fill with random
+  input_img.randomize();
+
+  
+  //layer 1
+  for (short result = 0; result < NUM_IMG_LAYER_1; result++)
+  {
+    Matrix copy = input_img;
+    copy.apply_zero_pad();
+
+    Matrix img_list[] = { copy };
+
+    Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d filter);
+
+    copy = convolve(img_list, 1, filter_list[0][result]);
+
+    copy.apply_active();
+
+    layer_list[0][result] = copy;
+
+
+
+
+  } 
+
+  
+
+
+  
+
+
+
 
   return 1;
 
-  */
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   srand(time(0));
   short h = 5;

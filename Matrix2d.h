@@ -14,6 +14,11 @@ public:
   short get_width() const;
   void set_height(const short new_height);
   void set_width(const short new_width);
+  void randomize();
+
+  void apply_zero_pad();
+
+  void apply_active();
 
 private:
   vector<vector<float>> img;

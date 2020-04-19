@@ -9,7 +9,7 @@ Matrix3d::Matrix3d()
   m_depth = 1;
 }
 
-Matrix3d::Matrix3d(const short depth, const short height, const short width, const vector<vector<vector<short>>> data)
+Matrix3d::Matrix3d(const short depth, const short height, const short width)
 {
   img.resize(depth);
   for (short i = 0; i < depth; i++)
@@ -20,7 +20,7 @@ Matrix3d::Matrix3d(const short depth, const short height, const short width, con
       img[i][j].resize(width);
       for (short k = 0; k < width; k++)
       {
-        img[i][j][k] = data[i][j][k];
+        img[i][j][k] = 0;
       }
     }
   }
@@ -31,12 +31,12 @@ Matrix3d::Matrix3d(const short depth, const short height, const short width, con
 }
 
 //width, heigh
-void Matrix3d::set_pixel(const short z, const short y, const short x, const short val)
+void Matrix3d::set_pixel(const short z, const short y, const short x, const float val)
 {
   img[z][y][x] = val;
   return;
 }
-short Matrix3d::get_pixel(const short z, const short y, const short x)const
+float Matrix3d::get_pixel(const short z, const short y, const short x)const
 {
   return img[z][y][x];
 }
@@ -81,3 +81,20 @@ void Matrix3d::set_depth(const short new_depth)
   img.resize(new_depth);
   return;
 }
+
+
+void Matrix3d::randomize()
+{
+  for (short i = 0; i < m_depth; i++)
+  {
+    for (short j = 0; j < m_height; j++)
+    {
+      for (short k = 0; k < m_width; k++)
+      {
+        img[i][j][k] = rand() % ((MAX_PIXEL - MIN_PIXEL) * 100) / 100.0;
+      }
+    }
+  }
+  return;
+}
+
