@@ -21,9 +21,9 @@ const short IMG_SIZE_W_PRE = 10;        // input Matrix width pre zeropad
 const short IMG_SIZE_H_POST = (ZERO_PAD) ? IMG_SIZE_H_PRE + 2 : IMG_SIZE_H_PRE;        // input Matrix height post zeropad
 const short IMG_SIZE_W_POST = (ZERO_PAD) ? IMG_SIZE_W_PRE + 2 : IMG_SIZE_W_PRE;        // input Matrix width post zeropad
 
-const short NUM_IMG_LAYER_1 = 3;   // number of Matrixs in layer 1
-const short NUM_IMG_LAYER_N = 4;   // number of Matrixs in layer 2 through N
-const short NUM_N_LAYERS = 3;       // N
+const short NUM_IMG_LAYER_1 = 2;   // number of Matrixs in layer 1
+const short NUM_IMG_LAYER_N = 3;   // number of Matrixs in layer 2 through N
+const short NUM_N_LAYERS = 2;       // N
 
 
 
@@ -72,8 +72,8 @@ Neuron layer   : "n"
 NOTE: MUST END IN "n10"
 */
 
-const short INITIAL_H = 5;
-const short INITIAL_W = 5;
+const short INITIAL_H = 3;
+const short INITIAL_W = 3;
 const short NUM_OUT = 10;
 
 

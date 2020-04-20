@@ -13,6 +13,9 @@ Matrix::Matrix()
 
 Matrix::Matrix(const short height, const short width)
 {
+  m_height = height;
+  m_width = width;
+
   img.resize(height);
   for (short i = 0; i < height; i++)
   {
@@ -23,8 +26,7 @@ Matrix::Matrix(const short height, const short width)
     }
   }
 
-  m_height = height;
-  m_width = width;
+
 }
 
 //width, heigh

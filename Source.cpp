@@ -8,18 +8,18 @@
       ____\//\\\\\\//\\\\\_____\/\\\_____________\/\\\______________\///\\\___________\///\\\__/\\\____\/\\\_____________\/\\\_\/\\\_____________
        _____\//\\\__\//\\\______\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\____\////\\\\\\\\\____\///\\\\\/_____\/\\\_____________\/\\\_\/\\\\\\\\\\\\\\\_
         ______\///____\///_______\///////////////__\///////////////________\/////////_______\/////_______\///______________\///__\///////////////__
-__/\\\________/\\\__________________________________________________/\\\\\\\____________/\\\\\\\\\\\\\\\_
- _\/\\\_______\/\\\________________________________________________/\\\/////\\\_________\/\\\///////////__
-  _\//\\\______/\\\________________________________________________/\\\____\//\\\________\/\\\_____________
-   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\__________________\/\\\_____\/\\\________\/\\\\\\\\\\\\_____
-    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\_________________\/\\\_____\/\\\________\////////////\\\___
-     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///__________________\/\\\_____\/\\\___________________\//\\\__
-      _____\//\\\\\______\//\\///////___\/\\\_________________________\//\\\____/\\\_________/\\\________\/\\\__
-       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\\____________\///\\\\\\\/____/\\\_\//\\\\\\\\\\\\\/___
-        _______\///__________\//////////__\///__________\///_______________\///////_____\///___\/////////////_____
+__/\\\________/\\\__________________________________________________/\\\\\\\_____________________/\\\\\_
+ _\/\\\_______\/\\\________________________________________________/\\\/////\\\_______________/\\\\////__
+  _\//\\\______/\\\________________________________________________/\\\____\//\\\___________/\\\///_______
+   __\//\\\____/\\\_______/\\\\\\\\___/\\/\\\\\\\__________________\/\\\_____\/\\\_________/\\\\\\\\\\\____
+    ___\//\\\__/\\\______/\\\/////\\\_\/\\\/////\\\_________________\/\\\_____\/\\\________/\\\\///////\\\__
+     ____\//\\\/\\\______/\\\\\\\\\\\__\/\\\___\///__________________\/\\\_____\/\\\_______\/\\\______\//\\\_
+      _____\//\\\\\______\//\\///////___\/\\\_________________________\//\\\____/\\\________\//\\\______/\\\__
+       ______\//\\\________\//\\\\\\\\\\_\/\\\__________/\\\____________\///\\\\\\\/____/\\\__\///\\\\\\\\\/___
+        _______\///__________\//////////__\///__________\///_______________\///////_____\///_____\/////////_____
 
 NAME: Veronica(?)
-VER 0.5 - connecting brain
+VER 0.6 - convolutional forward propagation
 START DATE: 4-1-2020 (lol wont be doing much tho)
 Credit to: MNIST data
 
@@ -117,6 +117,11 @@ added filter list initializer
 added layer list initializer
 conected layer 1 - unchecked
 
+patch 0.6 4-19-2020:
+fixed many bugs with convolve.
+complete forward propagation of the convolutional layers
+checked operations
+
 */
 
 
@@ -135,76 +140,33 @@ conected layer 1 - unchecked
 
 int main()
 {
-
-  srand(time(0));
-  //const short INITIAL_H = 28;
-  //const short INITIAL_W = 28;
-  //const short NUM_OUT = 10;
+  srand(time(0));//seed
 
 
-  
-  //initilaize a filter set
+  //make input img
+
+  Matrix input_img(INITIAL_H, INITIAL_W);
+
+  //load the img here!
+  //for now: fill with random
+  input_img.randomize();
+
+  cout << input_img << endl;
+
+  Matrix copy = input_img;
+  copy.apply_zero_pad();
+  cout << copy << endl;
+
+  //make filter set
+
   vector<vector<Matrix3d>> filter_list;
   filter_list.resize(NUM_N_LAYERS + 1);
-  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
-  {
-    if (i == 0)
-    {
-      filter_list[i].resize(NUM_IMG_LAYER_1);
-    }
-    else
-    {
-      filter_list[i].resize(NUM_IMG_LAYER_N);
-    }
-  }
+  filter_list = make_filter_set(filter_list);
 
 
-  for (short layer = 0; layer < NUM_N_LAYERS + 1; layer++)
-  {
-    if(layer == 0)
-    {
-      for (short filter = 0; filter < NUM_IMG_LAYER_1; filter++)
-      {
-        //2d in 3dform
-        Matrix3d temp_filter(1, FILTER_SIZE_1, FILTER_SIZE_1);
-        temp_filter.randomize();
-        //cout << temp_filter;
-        filter_list[0][filter] = temp_filter;
-
-      }
-    }
-    else 
-    {
-      for (short filter = 0; filter < NUM_IMG_LAYER_N; filter++)
-      {
-        Matrix3d temp_filter(((layer==1)? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), FILTER_SIZE_N, FILTER_SIZE_N);
-        temp_filter.randomize();
-        filter_list[layer][filter] = temp_filter;
-      }
-    }
-  }
+  //print filters
   
-
-  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
-  {
-    cout << "LAYER ===== " << i + 1 << endl;
-    if (i == 0)
-    {
-      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
-      {
-        cout << "filter" << j+1 << endl << filter_list[0][j] << endl << endl;
-      }
-    }
-    else
-    {
-      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
-      {
-        cout << "filter" << j + 1 << endl << filter_list[i][j] << endl << endl;
-      }
-    }
-  }
-  
-  return 0;
+  print_filters(filter_list);
 
   //filterlist made
   
@@ -213,32 +175,75 @@ int main()
 
   //initilaize a layer list
   vector<vector<Matrix>> layer_list;
-  filter_list.resize(NUM_N_LAYERS + 1);
+  layer_list.resize(NUM_N_LAYERS+1);
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    if (i == 0)
+    {
+      layer_list[0].resize(NUM_IMG_LAYER_1);
+    }
+    else
+    {
+      layer_list[i].resize(NUM_IMG_LAYER_N);
+    }
+  }
+
+  //fill with random
 
   for (short i = 0; i < NUM_N_LAYERS + 1; i++)
   {
     if (i == 0)
     {
-      filter_list[i].resize(NUM_IMG_LAYER_1);
+      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
+      {
+        //do something to all matrix
+
+        layer_list[i][j].set_height((ZERO_PAD) ? INITIAL_H : (INITIAL_H - FILTER_SIZE_1) + 1);
+        layer_list[i][j].set_width((ZERO_PAD) ? INITIAL_W : (INITIAL_W - FILTER_SIZE_1) + 1);
+        //layer_list[i][j].randomize();
+      }
     }
     else
     {
-      filter_list[i].resize(NUM_IMG_LAYER_N);
+      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
+      {
+
+        short temp = INITIAL_H;
+        short temp2 = INITIAL_W;
+        for (short k = 0; k < i+1; k++)
+        {
+          temp = (temp - FILTER_SIZE_N) + 1;
+          temp2 = (temp2 - FILTER_SIZE_N) + 1;
+        }
+
+        
+        layer_list[i][j].set_height((ZERO_PAD) ? INITIAL_H : temp);
+        layer_list[i][j].set_width((ZERO_PAD) ? INITIAL_H : temp2);
+        //layer_list[i][j].randomize();
+        
+      }
     }
   }
 
-  
+
+  //print_layers(layer_list);
 
 
   
 
 
 
-  Matrix input_img(INITIAL_H, INITIAL_W);
 
-  //load the img here!
-  //for now: fill with random
-  input_img.randomize();
+
+
+
+  
+
+  //skip
+
+  
+
+
 
   
   //layer 1
@@ -249,23 +254,178 @@ int main()
 
     Matrix img_list[] = { copy };
 
-    Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d filter);
+    //3d convolve 
 
+    cout << img_list[0] << endl;
     copy = convolve(img_list, 1, filter_list[0][result]);
+
+
 
     copy.apply_active();
 
     layer_list[0][result] = copy;
 
-
-
-
   } 
 
-  
+
+  for (short layer = 1; layer < NUM_N_LAYERS+1; layer++)
+  {
+    vector<Matrix> prior_layer = layer_list[layer - 1];
+
+    for (short i = 0; i < ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N); i++)
+    {
+      prior_layer[i].apply_zero_pad();
+    }
+    for (short img_num = 0; img_num < NUM_IMG_LAYER_N; img_num++)
+    {
+      Matrix poop = layer_list[layer][img_num];
+      poop = convolve(prior_layer, ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), filter_list[layer][img_num]);
+      poop.apply_active();
+      layer_list[layer][img_num] = poop;
+      
+      //convolve
+      //activate
+      //add to layer list
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  print_layers(layer_list);
+
+  return 0;
+
+  /*
+  //layer2
+
+
+  for (short layer = 1; layer < NUM_N_LAYERS; layer++)
+  {
+    vector<Matrix> prior_img_list = layer_list[layer - 1];
+
+    //aply zero pad here
+
+
+    //for each filter in layer
+    for (short img_num = 0; img_num < NUM_IMG_LAYER_N; img_num++)
+    {
+      Matrix temp = convolve(prior_img_list, ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), filter_list[layer][img_num]);
+
+      temp.apply_active();
+
+      layer_list[layer][img_num] = temp;
+
+    }
+
+
+  }
+
+  */
+
+
+  //-----------------------------------------print layer list
 
 
   
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  /*
+
+  for (short layer = 1; layer < NUM_N_LAYERS+1; layer++)
+  {
+    cout << "asshole" << endl;
+    vector<Matrix> img_list = layer_list[layer - 1];
+    cout << "whore" << endl;
+
+    for (short i = 0; i < ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N); i++)
+    {
+      cout << "slut" << endl;
+      if (layer == 1)
+      {
+        img_list[i].apply_zero_pad();
+      }
+      else
+      {
+        img_list[2].apply_zero_pad();
+      }
+      cout << "slut2" << endl;
+      
+    }
+    cout << "shit " << endl;
+    for (short result = 0; result < ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N); result++)
+    {
+      cout << "cum" << endl;
+      Matrix temp = convolve(img_list, ((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), filter_list[layer][result]);
+      cout << "piss " << endl;
+      temp.apply_active();
+
+      layer_list[layer][result] = temp;
+
+    }
+  }
+  
+
+  cout << "god save us please =====================" << endl;
+
+
+  
+  
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    if (i == 0)
+    {
+      cout << "IMG LAYER 1" << endl;
+      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
+      {
+        cout << "\timg " << j << endl;
+        cout << layer_list[i][j] << endl;
+      }
+      cout << endl;
+      
+    }
+    else
+    {
+      cout << "IMG LAYER " << i+1 << endl;
+      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
+      {
+        cout << "\timg " << j << endl;
+        cout << layer_list[i][j] << endl;
+      }
+      cout << endl;
+    }
+  }
+
+  */
 
 
 
@@ -288,7 +448,7 @@ int main()
 
 
 
-
+  /*
 
 
   srand(time(0));
@@ -310,6 +470,8 @@ int main()
   Matrix loop = pool(poop, 'a');
 
   cout << loop;
+
+  */
 
 }
 

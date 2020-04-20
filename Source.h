@@ -27,6 +27,8 @@ Matrix convolve(const Matrix picture, const Matrix filter);
 
 Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d filter);
 
+Matrix convolve(const vector<Matrix> pictures, const short num_matrix, const Matrix3d filter);
+
 siz new_size3d(const Matrix picture, const Matrix3d filter);
 
 float random_number(const short lower, const short upper, const short pre);
@@ -38,5 +40,10 @@ Matrix pool(Matrix input, const char kind);
 ostream& operator << (ostream& out, Matrix m);
 ostream& operator << (ostream& out, Matrix3d m);
 
+void print_filters(vector<vector<Matrix3d>> filter_list3d);
+
+vector<vector<Matrix3d>> make_filter_set(vector<vector<Matrix3d>> filter_list);
+
+void print_layers(vector<vector<Matrix>> layer_list);
 
 #endif

@@ -31,7 +31,7 @@ Matrix convolve(const Matrix picture, const Matrix filter)
   short output_height = (picture.get_height() - filter.get_height()) + 1;
   short output_width = (picture.get_width() - filter.get_width()) + 1;
 
-  short val;
+  float val;
 
   Matrix output(output_height, output_width);
 
@@ -61,7 +61,7 @@ Matrix convolve(const Matrix picture, const Matrix filter)
 }
 
 
-
+//using rn
 
 //apply zero pad b4
 //all pictires same size ;)
@@ -70,7 +70,52 @@ Matrix convolve(const Matrix pictures[], const short num_matrix, const Matrix3d 
   short output_height = (pictures[0].get_height() - filter.get_height()) + 1;
   short output_width = (pictures[0].get_width() - filter.get_width()) + 1;
 
-  short val;
+  float value;
+
+  Matrix output(output_height, output_width);
+
+  for (short i = 0; i < output_height; i++)
+  {
+    for (short j = 0; j < output_width; j++)
+    {
+      value = 0;
+
+      for (short z = 0; z < filter.get_depth(); z++)
+      {
+        for (short y = 0; y < filter.get_height(); y++)
+        {
+          for (short x = 0; x < filter.get_width(); x++)
+          {
+            
+            value += pictures[z].get_pixel(i + y, j + x) * filter.get_pixel(z, y, x);
+          }
+        }
+      }
+
+
+      output.set_pixel(i, j, value);
+
+    }
+  }
+
+  
+
+  return output;
+}
+
+
+
+
+
+
+//apply zero pad b4
+//all pictires same size ;)
+Matrix convolve(const vector<Matrix> pictures, const short num_matrix, const Matrix3d filter)
+{
+  short output_height = (pictures[0].get_height() - filter.get_height()) + 1;
+  short output_width = (pictures[0].get_width() - filter.get_width()) + 1;
+
+  float val;
 
   Matrix output(output_height, output_width);
 
@@ -273,7 +318,7 @@ ostream& operator << (ostream& out, Matrix m)
 
 ostream& operator << (ostream& out, Matrix3d m)
 {
-  cout << fixed;
+  out << fixed;
 
   for (short i = 0; i < m.get_width()/2; i++)
   {
@@ -307,6 +352,113 @@ ostream& operator << (ostream& out, Matrix3d m)
 
   return out;
 }
+
+
+
+
+void print_filters(vector<vector<Matrix3d>> filter_list)
+{
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    cout << "LAYER ===== " << i + 1 << endl;
+    if (i == 0)
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
+      {
+        cout << "filter" << j + 1 << endl << filter_list[0][j] << endl << endl;
+      }
+    }
+    else
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
+      {
+        cout << "filter" << j + 1 << endl << filter_list[i][j] << endl << endl;
+      }
+    }
+  }
+
+  return;
+
+}
+
+
+
+vector<vector<Matrix3d>> make_filter_set(vector<vector<Matrix3d>> filter_list)
+{
+
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    if (i == 0)
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_1);
+    }
+    else
+    {
+      filter_list[i].resize(NUM_IMG_LAYER_N);
+    }
+  }
+
+
+  for (short layer = 0; layer < NUM_N_LAYERS + 1; layer++)
+  {
+    if (layer == 0)
+    {
+      for (short filter = 0; filter < NUM_IMG_LAYER_1; filter++)
+      {
+        //2d in 3dform
+        Matrix3d temp_filter(1, FILTER_SIZE_1, FILTER_SIZE_1);
+        temp_filter.randomize();
+        //cout << temp_filter;
+        filter_list[0][filter] = temp_filter;
+
+      }
+    }
+    else
+    {
+      for (short filter = 0; filter < NUM_IMG_LAYER_N; filter++)
+      {
+        Matrix3d temp_filter(((layer == 1) ? NUM_IMG_LAYER_1 : NUM_IMG_LAYER_N), FILTER_SIZE_N, FILTER_SIZE_N);
+        temp_filter.randomize();
+        filter_list[layer][filter] = temp_filter;
+      }
+    }
+  }
+
+  return filter_list;
+}
+
+
+
+
+void print_layers(vector<vector<Matrix>> layer_list)
+{
+
+  cout << "Layer List" << endl;
+
+  for (short i = 0; i < NUM_N_LAYERS + 1; i++)
+  {
+    cout << "layer " << i + 1 << endl;
+    if (i == 0)
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_1; j++)
+      {
+        cout << "\timg " << j << endl;
+        cout << layer_list[i][j] << endl;
+      }
+    }
+    else
+    {
+      for (short j = 0; j < NUM_IMG_LAYER_N; j++)
+      {
+        cout << "\timg " << j << endl;
+        cout << layer_list[i][j] << endl;
+      }
+    }
+  }
+
+  return;
+}
+
 
 
 
